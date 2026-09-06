@@ -1,0 +1,19 @@
+.header-title-container {
+  padding: 0 24px;
+  display: flex;
+  justify-content: center; /* Центрируем заголовок строго по макету */
+  width: 100%;
+}
+
+.header-main-title {
+  color: var(--text-white);
+  font-size: 15px; /* Уменьшили размер, чтобы надпись не была огромной */
+  font-weight: 500; /* Сделали шрифт более утонченным, не жирным */
+  letter-spacing: 2px; /* Раздвинули буквы друг от друга */
+  text-transform: uppercase;
+  opacity: 0.9;
+  
+  /* Хак для сужения букв по горизонтали, создающий эффект вытянутого шрифта */
+  transform: scaleX(0.9);
+  display: inline-block;
+}

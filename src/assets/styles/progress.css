@@ -1,0 +1,43 @@
+.section-progress-container {
+  height: 76px;
+  margin: 0 24px;
+  padding: 0 16px;
+  background-color: var(--bg-main);
+  border: 2px solid var(--stroke-main);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.section-badge {
+  background-color: var(--blue-active);
+  color: var(--text-white);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 10px 20px;
+  border-radius: 16px;
+  white-space: nowrap;
+}
+
+.progress-track {
+  flex: 1;
+  height: 14px;
+  background-color: #1c2541;
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  width: 25%;
+  height: 100%;
+  background-color: var(--blue-active);
+  border-radius: 9px;
+}
+
+.progress-percent {
+  color: var(--text-white);
+  font-size: 15px;
+  font-weight: 900;
+}

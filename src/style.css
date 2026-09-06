@@ -1,0 +1,25 @@
+:root {
+  --bg-main: #090d1a;
+  --bg-card: #131a30;
+  --bg-menu: #0c101e;
+  --stroke-main: #1d2644;
+  --blue-active: #4a80f0;
+  --text-white: #ffffff;
+  --text-gray: #8e9aa7;
+}
+
+/* Сброс стилей для мобильного отображения */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* Убираем синюю вспышку при тапах на Samsung */
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-white);
+  font-family: sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
