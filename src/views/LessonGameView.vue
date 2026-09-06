@@ -1,162 +1,206 @@
+<!-- src/views/LessonGameView.vue -->
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
+import type { LessonStep, TheoryStep, QuizStep } from '../types/lesson'
 import { lessonsRepository } from '../data/lessonsRepository'
-import type { LessonStep, QuizStep } from '../types/lesson'
 
-const props = defineProps<{ lessonId: string }>()
-const emit = defineEmits(['back'])
+// Импорт глобальных стилей игрового процесса
+import '../assets/styles/game.css'
 
-const steps = ref<LessonStep[]>([])
-const currentStepIndex = ref(0)
-
-// Игровые состояния для тестов
-const selectedOptionIndex = ref<number | null>(null)
-const isAnswerChecked = ref(false)
-const isAnswerCorrect = ref(false)
-
-onMounted(() => {
-  steps.value = lessonsRepository[props.lessonId] || []
-})
-
-const currentStep = computed(() => steps.value[currentStepIndex.value])
-
-const progressWidth = computed(() => {
-  if (!steps.value.length) return 0
-  return ((currentStepIndex.value + 1) / steps.value.length) * 100
-})
-
-const selectOption = (index: number) => {
-  if (isAnswerChecked.value) return
-  selectedOptionIndex.value = index
+interface Props {
+  lessonId: number | null
 }
 
-const handleNextAction = () => {
-  if (currentStep.value.type === 'theory') {
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  (e: 'back'): void
+}>()
+
+// Получаем массив шагов по строковому ключу 'lesson_1'
+const stepsList = computed<LessonStep[]>(() => {
+  const id = Number(props.lessonId) || 1
+  const key = `lesson_${id}`
+  return lessonsRepository[key] || []
+})
+
+// Навигация по шагам внутри урока
+const currentStepIndex = ref<number>(0)
+const selectedAnswerIndex = ref<number | null>(null)
+const isChecked = ref<boolean>(false)
+
+// Безопасное получение текущего шага общего типа
+const currentStep = computed<LessonStep | null>(() => {
+  if (stepsList.value.length === 0) return null
+  return stepsList.value[currentStepIndex.value]
+})
+
+// Вычисляемые свойства для сужения типов специально ДЛЯ ШАБЛОНА
+const theoryStep = computed<TheoryStep | null>(() => {
+  const step = currentStep.value
+  return step && step.type === 'theory' ? step : null
+})
+
+const quizStep = computed<QuizStep | null>(() => {
+  const step = currentStep.value
+  return step && step.type === 'quiz' ? step : null
+})
+
+// Подсчет процентов прогресса (Заполнение видно сразу с 1 шага)
+const progressPercent = computed<number>(() => {
+  const totalSteps = stepsList.value.length
+  if (totalSteps === 0) return 0
+  return Math.round(((currentStepIndex.value + 1) / totalSteps) * 100)
+})
+
+// Безопасное получение URL картинки из локальной папки ресурсов
+const getArtUrl = (imagePath: string) => {
+  const filename = imagePath.split('/').pop() || ''
+  return new URL(`../assets/images/${filename}`, import.meta.url).href
+}
+
+// Логика игрового процесса
+const selectOption = (index: number) => {
+  if (isChecked.value) return
+  selectedAnswerIndex.value = index
+}
+
+const handleAction = () => {
+  if (theoryStep.value) {
     goToNextStep()
-    return
-  }
-  
-  if (currentStep.value.type === 'quiz') {
-    if (selectedOptionIndex.value === null) return
-    
-    if (!isAnswerChecked.value) {
-      const quiz = currentStep.value as QuizStep
-      isAnswerCorrect.value = selectedOptionIndex.value === quiz.correctAnswerIndex
-      isAnswerChecked.value = true
-      return
+  } else {
+    if (!isChecked.value) {
+      isChecked.value = true
+    } else {
+      goToNextStep()
     }
-    
-    goToNextStep()
   }
 }
 
 const goToNextStep = () => {
-  selectedOptionIndex.value = null
-  isAnswerChecked.value = false
-  isAnswerCorrect.value = false
-
-  if (currentStepIndex.value < steps.value.length - 1) {
+  isChecked.value = false
+  selectedAnswerIndex.value = null
+  
+  if (currentStepIndex.value < stepsList.value.length - 1) {
     currentStepIndex.value++
   } else {
+    // Урок полностью завершен
     emit('back')
   }
 }
+
+// Безопасная проверка правильности ответа
+const isCorrectAnswer = computed<boolean>(() => {
+  const step = quizStep.value
+  if (!step || selectedAnswerIndex.value === null) {
+    return false
+  }
+  return selectedAnswerIndex.value === step.correctAnswerIndex
+})
+
+// Динамический текст для главной кнопки управления
+const buttonText = computed<string>(() => {
+  if (theoryStep.value) return 'ПРОДОЛЖИТЬ'
+  return isChecked.value ? 'ПРОДОЛЖИТЬ' : 'ПРОВЕРИТЬ'
+})
+
+// Логика блокировки кнопки
+const isButtonDisabled = computed<boolean>(() => {
+  if (theoryStep.value) return false
+  if (isChecked.value) return false
+  return selectedAnswerIndex.value === null
+})
 </script>
 
 <template>
-  <div class="game-screen" v-if="currentStep">
-    
-    <!-- 1. Верхняя панель (Прогресс + Крестик) -->
-    <div class="game-top-bar">
-      <div class="progress-container">
-        <div class="progress-fill" :style="{ width: progressWidth + '%' }"></div>
+  <div class="game-screen has-header-line">
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ: Прогресс и Выход (ЗАФИКСИРОВАНА) -->
+    <header class="game-header">
+      <div class="game-progress-track">
+        <div class="game-progress-fill" :style="{ width: progressPercent + '%' }"></div>
       </div>
-      <button class="close-btn" @click="emit('back')">×</button>
-    </div>
+      <button class="close-btn" @click="emit('back')">✕</button>
+    </header>
 
-    <!-- 2. Зона основного контента -->
-    <div class="game-main-content">
-      
-      <!-- ТЕОРИЯ (ЭКРАН 1) -->
-      <div v-if="currentStep.type === 'theory'" class="theory-view">
-        <div class="theory-image-container">
-          <img src="../assets/images/yurovichi-camp.png" alt="Стоянка первобытных людей" class="theory-image" />
-        </div>
+    <!-- ТА САМАЯ КРАСНАЯ ОБЛАСТЬ: скроллится целиком сверху вниз -->
+    <main class="game-content">
+      <div v-if="currentStep" class="step-wrapper">
         
-        <!-- Текст лекции упакован в красивую овальную карточку из Figma -->
-        <div class="theory-card">
-          <span class="theory-meta">Микроурок {{ currentStepIndex + 1 }}: Заселение земель и Ледниковый период</span>
-          
-          <p class="theory-paragraph">
-            Первые люди — <span class="highlight-blue">кроманьонцы</span> — появились на юге Беларуси в эпоху позднего палеолита (<span class="highlight-blue">40–35 тысяч лет назад</span>), когда север Европы был скован ледником. Из-за сильного холода они селились исключительно на крайнем юге региона, основывая первые стоянки, такие как <span class="highlight-blue">Юровичи и Бердыж</span>.
-          </p>
-          <p class="theory-paragraph">
-            В условиях сурового климата люди вели <span class="highlight-blue">присваивающее хозяйство</span>, занимаясь собирательством и охотой на мамонтов. Основным инструментом труда служило ручное рубило.
-          </p>
-        </div>
-      </div>
+        <!-- Отрисовка ШАГА ТЕОРИИ -->
+        <div v-if="theoryStep" class="theory-container">
+          <!-- Арт и карточка лежат в одном потоке прокрутки -->
+          <div v-if="theoryStep.image" class="art-container">
+            <img 
+              :src="getArtUrl(theoryStep.image)" 
+              alt="Историческая панорама" 
+              class="theory-art-image"
+            />
+          </div>
 
-      <!-- ТЕСТ (ЭКРАНЫ 2, 3) -->
-      <div v-else-if="currentStep.type === 'quiz'" class="quiz-view">
-        <h2 class="quiz-question">{{ currentStep.question }}</h2>
-        <div class="quiz-options-list">
-          <div 
-            v-for="(option, idx) in currentStep.options" :key="idx"
-            class="option-card"
-            :class="{
-              'selected': selectedOptionIndex === idx && !isAnswerChecked,
-              'wrong': isAnswerChecked && selectedOptionIndex === idx && !isAnswerCorrect,
-              'correct': isAnswerChecked && idx === currentStep.correctAnswerIndex
-            }"
-            @click="selectOption(idx)"
-          >
-            <div class="radio-circle"><div class="radio-inner-dot"></div></div>
-            <span class="option-text">{{ option }}</span>
+          <!-- Карточка теории растет свободно по высоте контента -->
+          <div class="theory-card">
+            <div class="theory-title-badge">Микроурок 1: {{ theoryStep.title }}</div>
+            <p class="theory-text" v-html="theoryStep.text"></p>
+          </div>
+
+          <!-- НЕВИДИМАЯ РАСПОРКА: выталкивает нижний закругленный край карточки НАД кнопкой -->
+          <div class="scroll-spacer"></div>
+        </div>
+
+        <!-- Отрисовка ШАГА ТЕСТА -->
+        <div v-else-if="quizStep" class="quiz-container">
+          <div class="question-card">
+            <p class="question-text">{{ quizStep.question }}</p>
+          </div>
+
+          <div class="options-list">
+            <button
+              v-for="(option, index) in quizStep.options"
+              :key="index"
+              class="option-item"
+              :class="{
+                'is-selected': selectedAnswerIndex === index,
+                'is-correct': isChecked && index === quizStep.correctAnswerIndex,
+                'is-wrong': isChecked && selectedAnswerIndex === index && selectedAnswerIndex !== quizStep.correctAnswerIndex
+              }"
+              :disabled="isChecked"
+              @click="selectOption(index)"
+            >
+              <div class="radio-indicator"></div>
+              <span class="option-text">{{ option }}</span>
+            </button>
           </div>
         </div>
+
       </div>
+    </main>
 
-    </div>
-
-    <!-- 3. Нижний подвал (ЭКРАН 4) -->
-    <div 
-      class="game-bottom-zone" 
+    <!-- ФИКСИРОВАННЫЙ НИЖНИЙ ПОДВАЛ (КНОПКА ЗАФИКСИРОВАНА) -->
+    <footer 
+      class="game-footer"
       :class="{ 
-        'error-banner-active': isAnswerChecked && !isAnswerCorrect,
-        'success-banner-active': isAnswerChecked && isAnswerCorrect 
+        'banner-correct': isChecked && quizStep && isCorrectAnswer, 
+        'banner-wrong': isChecked && quizStep && !isCorrectAnswer 
       }"
     >
-      <div v-if="isAnswerChecked && !isAnswerCorrect" class="error-explanation-block">
-        <h3 class="error-title">НЕВЕРНО</h3>
-        <p class="error-text">
-          Именно огонь спасал от лютых ледниковых холодов, а кремнёвые наконечники помогали добывать мясо мамонтов. Без этого выжить было невозможно.
-        </p>
+      <div class="footer-inner">
+        <div v-if="isChecked && quizStep" class="banner-info-block">
+          <div class="banner-status-text">
+            {{ isCorrectAnswer ? 'ВЕРНО!' : 'НЕВЕРНО' }}
+          </div>
+          <p class="banner-explanation-text">
+            {{ quizStep.explanation }}
+          </p>
+        </div>
+        
+        <button 
+          class="action-btn"
+          :disabled="isButtonDisabled"
+          @click="handleAction"
+        >
+          {{ buttonText }}
+        </button>
       </div>
-
-      <div v-if="isAnswerChecked && isAnswerCorrect" class="success-explanation-block">
-        <h3 class="success-title">ВЕРНО</h3>
-        <p class="success-text">
-          Отличная работа! Исторический факт усвоен абсолютно правильно, двигаемся дальше.
-        </p>
-      </div>
-
-      <button 
-        class="game-primary-btn"
-        :class="{
-          'disabled': currentStep.type === 'quiz' && selectedOptionIndex === null,
-          'active-blue': currentStep.type === 'theory' || (selectedOptionIndex !== null && !isAnswerChecked),
-          'error-red-btn': isAnswerChecked && !isAnswerCorrect,
-          'success-green-btn': isAnswerChecked && isAnswerCorrect
-        }"
-        @click="handleNextAction"
-      >
-        ПРОДОЛЖИТЬ
-      </button>
-    </div>
-
+    </footer>
   </div>
 </template>
-
-<style scoped>
-@import '../assets/styles/game.css';
-</style>

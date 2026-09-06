@@ -1,236 +1,347 @@
-/* Базовый мобильный каркас экрана игры */
+/* src/assets/styles/game.css */
+
+/* Главный контейнер игрового экрана на весь дисплей смартфона */
 .game-screen {
-  height: 100vh;
-  background-color: var(--bg-main);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+  background-color: var(--bg-main, #121214);
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Запрещаем скролл всего экрана */
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* Верхняя панель прогресса */
-.game-top-bar {
-  height: 64px;
+/* ШАПКА: Прогресс-бар, кнопка закрытия (ЖЕСТКО НА МЕСТЕ) */
+.game-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
+  gap: 16px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 16px 20px;
   flex-shrink: 0;
+  background-color: var(--bg-main, #121214); /* Чтобы контент уходил под шапку красиво */
+  z-index: 20;
 }
 
-.progress-container {
-  width: 75%;
-  height: 10px;
+.has-header-line .game-header {
+  border-bottom: 1px solid #1f2942;
+}
+
+.game-progress-track {
+  flex: 1;
+  height: 12px;
   background-color: #1c2541;
-  border-radius: 5px;
+  border-radius: 6px;
   overflow: hidden;
 }
 
-.progress-fill {
+.game-progress-fill {
   height: 100%;
-  background-color: var(--blue-active);
-  transition: width 0.3s ease-out;
+  background-color: var(--blue-active, #3892f3);
+  border-radius: 6px;
+  transition: width 0.3s ease;
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: var(--text-gray);
-  font-size: 32px;
+  color: #ffffff;
+  font-size: 24px;
   cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Зона основного контента */
-.game-main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0 24px;
-  overflow: hidden;
+/* ОСНОВНАЯ ЗОНА КОНТЕНТА (КРАСНАЯ ОБЛАСТЬ): плавно скроллит ВСЁ внутри себя */
+.game-content {
+  flex-grow: 1;
+  overflow-y: auto !important; /* Включаем общий скролл для картинки и карточки */
+  padding: 20px 20px 0 20px;
+  box-sizing: border-box;
 }
 
-/* СТИЛИ ТЕОРИИ (КАРТОЧКА С СКРОЛЛОМ ВНУТРИ) */
-.theory-view {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  height: 100%;
-  overflow: hidden;
-}
-
-.theory-image-container {
-  width: 100%;
-  height: 160px;
-  border-radius: 24px;
-  overflow: hidden;
-  border: 2px solid var(--stroke-main);
-  background-color: var(--bg-card);
-  flex-shrink: 0;
-}
-
-.theory-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.theory-card {
-  background-color: var(--bg-card);
-  border-radius: 24px;
-  padding: 20px;
-  border: 2px solid var(--stroke-main);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  flex: 1;
-  overflow-y: auto; /* Текст листается строго внутри карточки */
-  scrollbar-width: none;
-}
-.theory-card::-webkit-scrollbar {
+/* Скрываем системные полосы прокрутки Android, чтобы интерфейс оставался чистым */
+.game-content::-webkit-scrollbar {
   display: none;
 }
 
-.theory-meta {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--blue-active);
+.step-wrapper {
+  width: 100%;
+  height: auto;
 }
 
-.theory-paragraph {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #c4d1ec;
-}
-
-.highlight-blue {
-  color: var(--blue-active);
-  font-weight: 800;
-}
-
-/* СТИЛИ ТЕСТА (QUIZ) */
-.quiz-view {
+/* --- ТЕОРИЯ --- */
+.theory-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
 }
 
-.quiz-question {
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.5;
-  color: var(--text-white);
-  text-align: center;
-  margin: 14px 0 24px 0;
+.art-container {
+  width: 100%;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
-.quiz-options-list {
+.theory-art-image {
+  width: 100%;
+  height: auto;
+  max-height: 28vh;
+  object-fit: cover;
+  display: block;
+}
+
+/* Карточка лекции: растет нативно вверх вместе с картинкой, без внутренних скроллбаров! */
+.theory-card {
+  background-color: #111E40;
+  border: 1px solid #1f2942;
+  border-radius: 20px;
+  padding: 22px 20px; 
+  box-sizing: border-box;
+  width: 100%;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.theory-title-badge {
+  font-size: 16px;
+  font-weight: 800;
+  color: #3892f3;
+  margin-bottom: 14px;
+  line-height: 1.4;
+  letter-spacing: 0.3px;
+}
+
+.theory-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Красим все теги <b> в фирменный синий цвет */
+.theory-text b {
+  color: #3892f3;
+  font-weight: 700;
+}
+
+/* Распорка создает пустое место снизу свитка, заставляя карточку закончиться строго НАД кнопкой */
+.scroll-spacer {
+  width: 100%;
+  height: 100px;
+  flex-shrink: 0;
+}
+
+/* --- ТЕСТЫ --- */
+.quiz-container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 100px;
+}
+
+.question-card {
+  background-color: #161c2e;
+  border: 1px solid #1f2942;
+  border-radius: 20px;
+  padding: 24px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.question-text {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #ffffff;
+  text-align: left;
+  margin: 0;
+}
+
+.options-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  flex: 1;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-.quiz-options-list::-webkit-scrollbar {
-  display: none;
 }
 
-.option-card {
+.option-item {
+  display: flex;
+  align-items: center;
   width: 100%;
-  min-height: 56px;
-  border-radius: 20px;
-  background-color: var(--bg-card);
-  border: 2px solid var(--stroke-main);
-  padding: 16px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  min-height: 54px;
+  padding: 14px 18px;
+  background: transparent;
+  border: 2px solid #1a2235;
+  border-radius: 16px;
   cursor: pointer;
-  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: background-color 0.2s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.radio-circle {
-  width: 22px;
-  height: 22px;
+.option-item:not(:disabled):active {
+  background-color: rgba(20, 27, 45, 0.4);
+}
+
+.option-item.is-selected {
+  border-color: var(--blue-active, #3892f3);
+  background-color: rgba(17, 26, 46, 0.4);
+}
+
+.radio-indicator {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid #24314f;
   border-radius: 50%;
-  border: 2.5px solid var(--text-gray);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-right: 14px;
   flex-shrink: 0;
+  position: relative;
+  box-sizing: border-box;
 }
 
-.radio-inner-dot {
+.option-item.is-selected .radio-indicator {
+  border-color: var(--blue-active, #3892f3);
+}
+
+.option-item.is-selected .radio-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 10px;
   height: 10px;
+  background-color: var(--blue-active, #3892f3);
   border-radius: 50%;
-  background-color: transparent;
 }
 
 .option-text {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-white);
-  line-height: 1.3;
+  font-size: 15px;
+  font-weight: 500;
+  color: #e2e8f0;
+  line-height: 1.4;
 }
 
-.option-card.selected { border-color: var(--blue-active); }
-.option-card.selected .radio-circle { border-color: var(--blue-active); }
-.option-card.selected .radio-inner-dot { background-color: var(--blue-active); }
+/* СТАТУСЫ ПРОВЕРКИ */
+.option-item.is-correct {
+  border-color: #2ec4b6 !important;
+  background-color: #0c2523 !important;
+}
+.option-item.is-correct .radio-indicator {
+  border-color: #2ec4b6 !important;
+}
+.option-item.is-correct .radio-indicator::after {
+  background-color: #2ec4b6 !important;
+}
 
-.option-card.wrong { border-color: #ff4a5a; background-color: #2a1620; }
-.option-card.wrong .radio-circle { border-color: #ff4a5a; }
-.option-card.wrong .radio-inner-dot { background-color: #ff4a5a; }
+.option-item.is-wrong {
+  border-color: #e71d36 !important;
+  background-color: #2b1116 !important;
+}
+.option-item.is-wrong .radio-indicator {
+  border-color: #e71d36 !important;
+}
+.option-item.is-wrong .radio-indicator::after {
+  background-color: #e71d36 !important;
+}
 
-.option-card.correct { border-color: #10b981; background-color: #112a20; }
-.option-card.correct .radio-circle { border-color: #10b981; }
-.option-card.correct .radio-inner-dot { background-color: #10b981; }
+/* --- ПОДВАЛ / ПАРЯЩАЯ КНОПКА (ЖЕСТКО НА МЕСТЕ ПОД СВИТКОМ) --- */
+.game-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: transparent;
+  border-top: none;
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px)) 20px;
+  z-index: 10;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease;
+}
 
-/* ФИКСИРОВАННЫЙ ПОДВАЛ (С БЕЗОПАСНЫМ ОТСТУПОМ) */
-.game-bottom-zone {
-  padding: 16px 24px calc(16px + env(safe-area-inset-bottom, 16px)) 24px;
-  background-color: var(--bg-main);
-  z-index: 100;
+.footer-inner {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  flex-shrink: 0;
+  gap: 12px;
+  width: 100%;
 }
 
-.game-bottom-zone.error-banner-active {
-  background-color: #ff4a5a;
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
+/* Зеленый баннер "ВЕРНО" */
+.game-footer.banner-correct {
+  background-color: #0c2523 !important;
+  border-top: 1px solid #2ec4b6 !important;
 }
 
-.game-bottom-zone.success-banner-active {
-  background-color: #10b981;
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
+/* Розово-красный баннер "НЕВЕРНО" */
+.game-footer.banner-wrong {
+  background-color: #2b1116 !important;
+  border-top: 1px solid #e71d36 !important;
 }
 
-.error-explanation-block, .success-explanation-block {
+.banner-status-text {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.game-footer.banner-correct .banner-status-text {
+  color: #2ec4b6;
+}
+
+.game-footer.banner-wrong .banner-status-text {
+  color: #e71d36;
+}
+
+.banner-info-block {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  text-align: left;
 }
 
-.error-title, .success-title { font-size: 18px; font-weight: 900; color: var(--text-white); }
-.error-text { font-size: 13px; line-height: 1.45; color: #ffdee2; font-weight: 700; }
-.success-text { font-size: 13px; line-height: 1.45; color: #d1fae5; font-weight: 700; }
+.banner-explanation-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.45;
+  margin: 0;
+}
 
-.game-primary-btn {
+.action-btn {
   width: 100%;
   height: 50px;
+  background-color: var(--blue-active, #3892f3);
+  color: #ffffff;
   border: none;
-  border-radius: 20px;
-  font-size: 15px;
-  font-weight: 900;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.game-primary-btn.disabled { background-color: #1d2644; color: var(--text-gray); }
-.game-primary-btn.active-blue { background-color: var(--blue-active); color: var(--text-white); }
-.game-primary-btn.error-red-btn { background-color: var(--text-white); color: #ff4a5a; }
-.game-primary-btn.success-green-btn { background-color: var(--text-white); color: #10b981; }
+.action-btn:disabled {
+  background-color: #24314f;
+  color: #4e6185;
+  cursor: not-allowed;
+}
+
+.banner-correct .action-btn {
+  background-color: #2ec4b6;
+  color: #ffffff;
+}
+
+.banner-wrong .action-btn {
+  background-color: #e71d36;
+  color: #ffffff;
+}

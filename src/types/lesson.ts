@@ -1,29 +1,26 @@
-// Описываем структуру одного элемента в глобальной карусели уроков
+// src/types/lesson.ts
+
 export interface LessonMeta {
-  number: number;
-  title: string;
+  number: number
+  title: string
 }
 
-// Описываем структуру шага ТЕОРИИ (Конспекта)
 export interface TheoryStep {
-  type: 'theory';
-  title: string;
-  text: string;
-  image?: string; 
+  type: 'theory'
+  title: string
+  text: string
+  image: string
 }
 
-// Описываем структуру шага ТЕСТА (Квиза)
 export interface QuizStep {
-  type: 'quiz';
-  question: string;
-  options: string[]; 
-  correctAnswerIndex: number; 
+  type: 'quiz'
+  question: string
+  options: string[]
+  correctAnswerIndex: number
+  explanation: string
 }
 
-// Универсальный тип шага урока
-export type LessonStep = TheoryStep | QuizStep;
+export type LessonStep = TheoryStep | QuizStep
 
-// ИСПРАВЛЕНО: Добавлен обязательный экспорт для репозитория
-export interface LessonsRepository {
-  [lessonId: string]: LessonStep[];
-}
+// Экспортируем строгий тип репозитория (с буквой S на конце)
+export type LessonsRepository = Record<string, LessonStep[]>

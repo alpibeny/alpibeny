@@ -1,0 +1,41 @@
+/* src/assets/styles/app_layout.css */
+
+/* Нижнее меню аккуратно фиксируется над нижним краем экрана */
+.bottom-fixed-zone {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
+
+/* Стили для будущих экранов-заглушек, которые плавают независимо и не ломают карусель */
+.placeholder-screen-overlay {
+  position: fixed;
+  top: 180px; /* Садится ровно под твою шапку */
+  bottom: 70px; /* Заканчивается ровно над нижним меню */
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  text-align: center;
+  z-index: 5;
+}
+
+.placeholder-screen-overlay h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ffffff;
+}
+
+.placeholder-screen-overlay p {
+  font-size: 15px;
+  color: #a1a1aa;
+  line-height: 1.5;
+}
